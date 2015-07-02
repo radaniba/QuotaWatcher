@@ -251,6 +251,5 @@ def main():
     notifier.run()
     loggy.info("End of QuotaWatcher session")
 
-
 if __name__ == "__main__":
     main()
