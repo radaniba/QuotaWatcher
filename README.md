@@ -1,4 +1,4 @@
-#QuotaWatcher
+# QuotaWatcher
 
 This is a utility to watch the quota on GSC for the `shahlab` group. It can be adapted for any general use
 
@@ -21,5 +21,5 @@ export GNU_PARALLEL="/path/to/your/gnu/parallel"
 running the program ; example
 
 ```
-python test.py /genesis/extscratch/shahlab/ dev_list -n "Hey Test" -t 2500000000000
+python quotawatcher.py /genesis/extscratch/shahlab/ dev_list -s "Hey Test" -t 2500000000000
 ```
