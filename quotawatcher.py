@@ -154,8 +154,8 @@ class Notifier(object):
         while nbytes >= 1024 and i < len(self.suffixes) - 1:
             nbytes /= 1024.
             i += 1
-        f = ('%.2f' % nbytes).rstrip('0').rstrip('.')
-        return '%s %s' % (f, self.suffixes[i])
+        f = ('%.2f'.format(nbytes)).rstrip('0').rstrip('.')
+        return '%s %s'.format(f, self.suffixes[i])
 
     @staticmethod
     def list_folders(given_path):
