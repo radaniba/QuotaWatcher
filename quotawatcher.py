@@ -63,19 +63,23 @@ class Notifier(object):
         self.threshold = None
         self.path = None
         self.list = None
-        self.EMAIL_SENDER = None
-        self.EMAIL_PASSWORD = None
-        self.GMAIL_SMTP = None
-        self.GMAIL_SMTP_PORT = None
-        self.TEXT_SUBTYPE = None
-        self.CAP_REACHED = False
-        self.EMAIL_SUBJECT = None
+        self.email_sender = None
+        self.email_password = None
+        self.gmail_smtp = None
+        self.gmail_smtp_port = None
+        self.text_subtype = None
+        self.cap_reached = False
+        self.email_subject = None
 
         for (key, value) in kwargs.iteritems():
             if hasattr(self, key):
                 setattr(self, key, value)
 
         self._log = init_log()
+
+    @property
+    def loggy(self):
+        return self._log
 
     @staticmethod
     def load_recipients_emails(emails_file):
@@ -90,7 +94,7 @@ class Notifier(object):
         template_file.close()
         return template_file_content
 
-    def notify_user(self, EMAIL_RECEIVERS, table, template):
+    def notify_user(self, email_receivers, table, template):
         """This method sends an email
         :rtype : email sent to specified members
         """
@@ -99,23 +103,23 @@ class Notifier(object):
             os.path.dirname(__file__), "templates/" + template + ".txt")
         content = self.load_message_content(input_file, table)
 
-        msg = MIMEText(content, self.TEXT_SUBTYPE)
+        msg = MIMEText(content, self.text_subtype)
 
-        msg["Subject"] = self.EMAIL_SUBJECT
-        msg["From"] = self.EMAIL_SENDER
-        msg["To"] = ','.join(EMAIL_RECEIVERS)
+        msg["Subject"] = self.email_subject
+        msg["From"] = self.email_sender
+        msg["To"] = ','.join(email_receivers)
 
         try:
-            smtpObj = SMTP(self.GMAIL_SMTP, self.GMAIL_SMTP_PORT)
+            smtpObj = SMTP(self.gmail_smtp, self.gmail_smtp_port)
             # Identify yourself to GMAIL ESMTP server.
             smtpObj.ehlo()
             # Put SMTP connection in TLS mode and call ehlo again.
             smtpObj.starttls()
             smtpObj.ehlo()
             # Login to service
-            smtpObj.login(user=self.EMAIL_SENDER, password=self.EMAIL_PASSWORD)
+            smtpObj.login(user=self.email_sender, password=self.email_password)
             # Send email
-            smtpObj.sendmail(self.EMAIL_SENDER, EMAIL_RECEIVERS, msg.as_string())
+            smtpObj.sendmail(self.email_sender, email_receivers, msg.as_string())
             # close connection and session.
             smtpObj.quit()
         except SMTPException as error:
@@ -134,7 +138,7 @@ class Notifier(object):
                 ('grep', '-v', '"Permission denied"'), stdin=p2.stdout, stdout=subprocess.PIPE)
             output = p3.communicate()[0]
         except subprocess.CalledProcessError as e:
-            raise RuntimeError("command '{}' return with error (code {}): {}".format(
+            raise RuntimeError("command '{0}' return with error (code {1}): {2}".format(
                 e.cmd, e.returncode, e.output))
         # return ''.join([' '.join(hit.split('\t')) for hit in output.split('\n')
         # if len(hit) > 0 and not "Permission" in hit and output[0].isdigit()])
@@ -163,7 +167,7 @@ class Notifier(object):
         return user_list
 
     def notify(self):
-        global CAP_REACHED
+        global cap_reached
         self._log.info("Loading recipient emails...")
         list_of_recievers = self.load_recipients_emails(self.list)
         paths = self.list_folders(self.path)
@@ -188,14 +192,14 @@ class Notifier(object):
             if int(size_of_account) > int(self.threshold):
                 table.add_row(
                     ["*" + os.path.basename(account) + "*", "*" + self.du_h(size_of_account) + "*"])
-                self.CAP_REACHED = True
+                self.cap_reached = True
             else:
                 table.add_row([os.path.basename(account), self.du_h(size_of_account)])
         # notify Admins
         table.add_row(["TOTAL", self.du_h(sum(sizes))])
         table.add_row(["Usage", str(sum(sizes) / 70000000000000)])
         self.notify_user(list_of_recievers, table, "karey")
-        if self.CAP_REACHED:
+        if self.cap_reached:
             self.notify_user(list_of_recievers, table, "default_size_limit")
 
     def run(self):
@@ -223,7 +227,7 @@ def main():
 
     args = arguments().parse_args()
     notifier = Notifier()
-    loggy = notifier._log
+    loggy = notifier.loggy
     # Set parameters
     loggy.info("Starting QuotaWatcher session...")
     loggy.info("Setting parameters ...")
@@ -234,13 +238,13 @@ def main():
     # Configure the app
     try:
         loggy.info("Loading environment variables ...")
-        notifier.EMAIL_SENDER = os.environ["NOTIFIER_SENDER"]
-        notifier.EMAIL_PASSWORD = os.environ["NOTIFIER_PASSWD"]
-        notifier.GMAIL_SMTP = os.environ["NOTIFIER_SMTP"]
-        notifier.GMAIL_SMTP_PORT = os.environ["NOTIFIER_SMTP_PORT"]
-        notifier.TEXT_SUBTYPE = os.environ["NOTIFIER_SUBTYPE"]
-        notifier.EMAIL_SUBJECT = args.notification_subject
-        notifier.CAP_REACHED = False
+        notifier.email_sender = os.environ["NOTIFIER_SENDER"]
+        notifier.email_password = os.environ["NOTIFIER_PASSWD"]
+        notifier.gmail_smtp = os.environ["NOTIFIER_SMTP"]
+        notifier.gmail_smtp_port = os.environ["NOTIFIER_SMTP_PORT"]
+        notifier.text_subtype = os.environ["NOTIFIER_SUBTYPE"]
+        notifier.email_subject = args.notification_subject
+        notifier.cap_reached = False
     except Exception, e:
         loggy.exception(e)
 

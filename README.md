@@ -1,5 +1,7 @@
 # QuotaWatcher
 
+[![Code Issues](http://www.quantifiedcode.com/api/v1/project/cd2287ba365040fb9e560c34491ff42d/badge.svg)](http://www.quantifiedcode.com/app/project/cd2287ba365040fb9e560c34491ff42d)
+
 This is a utility to watch the quota on GSC for the `shahlab` group. It can be adapted for any general use
 
 You can adjust the threshold that triggers the notification alert, currently is it set to 2.5 T
