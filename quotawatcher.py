@@ -48,7 +48,6 @@ except ImportError:
     # Checks the installation of the necessary python modules
     import os
     import sys
-
     print((os.linesep * 2).join(
         ["An error found importing one module:", str(sys.exc_info()[1]), "You need to install it Stopping..."]))
     sys.exit(-2)
@@ -151,8 +150,8 @@ class Notifier(object):
         if nbytes == 0:
             return '0 B'
         i = 0
-        while nbytes >= 1024 and i < len(self.suffixes) - 1:
-            nbytes /= 1024.
+        while nbytes >= 1000 and i < len(self.suffixes) - 1:
+            nbytes /= 1000.
             i += 1
         f = ('%.2f'.format(nbytes)).rstrip('0').rstrip('.')
         return '%s %s'.format(f, self.suffixes[i])
@@ -182,7 +181,7 @@ class Notifier(object):
                 sizes.append(0)
         # sizes = [int(du(size).split(' ')[0]) for size in paths]
         # convert kilobytes to bytes
-        sizes = [int(element) * 1000 for element in sizes]
+        sizes = [int(element) for element in sizes]
         table = PrettyTable(["Directory", "Size"])
         table.align["Directory"] = "l"
         table.align["Size"] = "r"
@@ -191,13 +190,13 @@ class Notifier(object):
         for account, size_of_account in zip(paths, sizes):
             if int(size_of_account) > int(self.threshold):
                 table.add_row(
-                    ["*" + os.path.basename(account) + "*", "*" + self.du_h(size_of_account) + "*"])
+                    ["*" + os.path.basename(account) + "*", "*" + self.du_h(size_of_account * 1000) + "*"])
                 self.cap_reached = True
             else:
                 table.add_row([os.path.basename(account), self.du_h(size_of_account)])
         # notify Admins
         table.add_row(["TOTAL", self.du_h(sum(sizes))])
-        table.add_row(["Usage", str(sum(sizes) / 70000000000000)])
+        table.add_row(["Usage", str(sum(sizes) / 70000000000)])
         self.notify_user(list_of_recievers, table, "karey")
         if self.cap_reached:
             self.notify_user(list_of_recievers, table, "default_size_limit")
@@ -215,7 +214,7 @@ def arguments():
                         help="The path to monitor. If none is given, takes the  home directory")
     parser.add_argument("list", help="text file containing the list of persons to be notified, one per line")
     parser.add_argument("-s", "--notification_subject", default=None, help="Email subject of the notification")
-    parser.add_argument("-t", "--threshold", default=2500000000000,
+    parser.add_argument("-t", "--threshold", default=2500000000,
                         help="The threshold that will trigger the notification")
     parser.add_argument("-v", "--version", action="version",
                         version="%(prog)s {0}".format(__version__),
